@@ -1,0 +1,2 @@
+pexpect>=4.6
+tomli>=1.2 ; python_version < "3.11"

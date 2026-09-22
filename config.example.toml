@@ -1,0 +1,69 @@
+# esa_deploy.py configuration
+#
+# Install as /etc/esa-deploy/config.toml, owned by root, mode 0600.
+# Every key in [defaults] applies to all targets and can be overridden per
+# [[targets]] table. Only host, target_domains and pfx_password (or
+# pfx_password_file) are required; everything else has a sensible default.
+
+[defaults]
+# --- SSH -------------------------------------------------------------------
+user = "admin"
+port = 22
+auth = "key"                                   # "key" (recommended) or "password"
+identity_file = "/etc/esa-deploy/esa_admin"    # private key whose public half is loaded on the appliance
+known_hosts_file = "/etc/esa-deploy/known_hosts"
+strict_host_key = true                         # false -> StrictHostKeyChecking=accept-new (first contact only)
+# password_file = "/etc/esa-deploy/ssh.pass"   # only with auth = "password"
+# ssh_extra_options = ["HostKeyAlgorithms=+ssh-rsa", "PubkeyAcceptedAlgorithms=+ssh-rsa"]  # older AsyncOS
+# scp_legacy = "auto"                          # "auto" adds `scp -O` on OpenSSH >= 8.7; "yes" / "no" to force
+connect_timeout = 20                           # seconds, SSH connection establishment
+cli_timeout = 90                               # seconds to wait for each appliance prompt
+commit_timeout = 180                           # seconds to wait for "Changes committed"
+
+# --- Certificate profile ---------------------------------------------------
+profile_name = "lets_encrypt_mail"             # created on first run, overwritten afterwards
+remote_pfx_path = "/configuration/esacertpfx"  # basename is what certconfig is asked to import
+pfx_password_file = "/etc/esa-deploy/pfx.pass" # or: pfx_password = "..."
+pfx_legacy = false                             # true -> `openssl pkcs12 -legacy` (older AsyncOS releases)
+cleanup_remote_pfx = true                      # overwrite the uploaded PKCS#12 with an empty file afterwards
+# commit_comment = "Let's Encrypt renewal"     # default: "esa_deploy <version>: imported <profile> sha256 <fp>"
+
+# --- Verification ----------------------------------------------------------
+# After a deployment (and in --reconcile / --verify-only) the certificate served
+# on each endpoint is compared with the lineage's cert.pem.
+verify_strict = false                          # true -> a deployment counts as failed if verification fails
+verify_timeout = 15
+verify_retries = 3
+verify_retry_delay = 10
+
+# --- Clustered appliances (best effort) ------------------------------------
+# cluster_mode = ""                            # "", "cluster", "group" or "machine" -> runs `clustermode ...`
+# cluster_name = ""                            # group/machine name (machine defaults to the target host)
+# cluster_level_answer = ""                    # answer to a "... cluster level ... [C]>" question, if asked
+
+
+# One [[targets]] table per appliance. In certbot hook mode a target is deployed
+# when one of its target_domains is covered by the renewed certificate.
+[[targets]]
+name = "esa1"
+host = "esa1.example.com"
+target_domains = ["mail.example.com"]
+lineage = "/etc/letsencrypt/live/mail.example.com"   # used by --reconcile and --force
+verify = [
+  "esa1.example.com:443",        # HTTPS management interface (TLS)
+  "mail.example.com:25",         # SMTP listener (STARTTLS is implied for ports 25 and 587)
+]
+
+# [[targets]]
+# name = "esa2"
+# host = "esa2.example.com"
+# target_domains = ["mail.example.com"]
+# lineage = "/etc/letsencrypt/live/mail.example.com"
+# verify = ["esa2.example.com:443", "esa2.example.com:25:starttls"]
+
+# [[targets]]
+# name = "sma"
+# host = "sma.example.com"
+# target_domains = ["sma.example.com"]
+# profile_name = "lets_encrypt_sma"
+# verify = ["sma.example.com:443:tls"]

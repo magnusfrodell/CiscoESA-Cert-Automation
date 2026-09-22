@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily check that every Cisco ESA serves the current Let's Encrypt certificate
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

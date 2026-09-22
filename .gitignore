@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Never commit configuration, secrets, keys or transcripts
+config.toml
+*.pass
+*.pfx
+*.p12
+*.pem
+*.key
+esa_admin
+esa_admin.pub
+known_hosts
+*.log

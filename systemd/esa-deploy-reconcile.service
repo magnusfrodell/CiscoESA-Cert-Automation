@@ -1,0 +1,11 @@
+[Unit]
+Description=Reconcile Cisco ESA certificate profiles with the local Let's Encrypt lineages
+Documentation=https://github.com/magnusfrodell/CiscoESA-Cert-Automation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/esa_deploy.py --reconcile
+# Uncomment to keep a redacted transcript of every appliance session:
+# ExecStart=/usr/local/sbin/esa_deploy.py --reconcile --transcript /var/log/esa-deploy-transcript.log
